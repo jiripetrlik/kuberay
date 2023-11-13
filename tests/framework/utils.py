@@ -93,6 +93,14 @@ class ExternalClusterManager(ClusterManager):
     def __init__(self) -> None:
         self.k8s_client_dict = {}
         self.cleanup_timeout = 120
+
+        config.load_kube_config()
+        self.k8s_client_dict.update(
+            {
+                CONST.K8S_V1_CLIENT_KEY: client.CoreV1Api(),
+                CONST.K8S_CR_CLIENT_KEY: client.CustomObjectsApi(),
+            }
+        )
     
     def cleanup(self, namespace = "default") -> None:
         if self.CLUSTER_CLEANUP_SCRIPT in os.environ:
@@ -122,21 +130,9 @@ class ExternalClusterManager(ClusterManager):
                     break
 
                 time.sleep(1)
-                
-        for _, k8s_client in self.k8s_client_dict.items():
-            k8s_client.api_client.rest_client.pool_manager.clear()
-            k8s_client.api_client.close()
-
-        self.k8s_client_dict = {}
 
     def initialize_cluster(self, kind_config=None) -> None:
-        config.load_kube_config()
-        self.k8s_client_dict.update(
-            {
-                CONST.K8S_V1_CLIENT_KEY: client.CoreV1Api(),
-                CONST.K8S_CR_CLIENT_KEY: client.CustomObjectsApi(),
-            }
-        )
+        pass
 
     def upload_image(self, image):
         pass
